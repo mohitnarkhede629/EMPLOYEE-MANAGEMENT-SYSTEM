@@ -17,7 +17,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Component
 public class EmployeeDto {
-
+	
+	private String userName;
+	private String password;
 	private String firstName;
 	private String lastName;
 	private String email;

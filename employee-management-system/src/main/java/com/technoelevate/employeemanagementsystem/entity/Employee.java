@@ -12,12 +12,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
-import org.springframework.stereotype.Component;
-
-import com.technoelevate.employeemanagementsystem.customidgenerator.CustomIdGenerator;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,10 +28,11 @@ public class Employee implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	@Id @GeneratedValue(generator = "CustomIdGenerator")
-	@GenericGenerator(name = "CustomIdGenerator", strategy ="com.technoelevate.employeemanagementsystem.customidgenerator" )
+	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "employee_id")
-	private String employeeId;
+	private Integer employeeId;
+	private String userName;
+	private String password;
 	private String firstName;
 	private String lastName;
 	private String email;

@@ -1,10 +1,18 @@
 package com.technoelevate.employeemanagementsystem.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -12,24 +20,54 @@ import com.technoelevate.employeemanagementsystem.customexceptions.EmployeeNotFo
 import com.technoelevate.employeemanagementsystem.dao.EmployeeDao;
 import com.technoelevate.employeemanagementsystem.dto.EmployeeDto;
 import com.technoelevate.employeemanagementsystem.entity.Employee;
+import com.technoelevate.employeemanagementsystem.helper.JwtUtil;
 
 @Component
 @Service
-public class EmployeeServicesImpl implements EmployeeServices {
+public class EmployeeServicesImpl implements EmployeeServices, UserDetailsService {
 
 	@Autowired
 	private EmployeeDao employeeDao;
+	@Autowired
+	private JavaMailSender mailSender;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+	@Autowired
+	private JwtUtil jwtUtil;
+
 
 	@Override
 	public Employee addEmployee(EmployeeDto employeeDto) {
-		Employee employee = new Employee();
-		BeanUtils.copyProperties(employeeDto, employee);
-		Employee emp = employeeDao.save(employee);
-		return emp;
+
+		try {
+			Employee employee = new Employee();
+			BeanUtils.copyProperties(employeeDto, employee);
+			
+			employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+			Employee emp = employeeDao.save(employee);
+			
+			UserDetails userDetails = loadUserByUsername(employeeDto.getUserName());
+			String token = this.jwtUtil.generateToken(userDetails);
+			System.out.println(token);
+			
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+			
+			simpleMailMessage.setFrom("mohitnarkhede629@gmail.com");
+			simpleMailMessage.setTo(emp.getEmail());
+			simpleMailMessage.setText("Registration Sussessful.\n your Login Credentials are as follows\n "
+					+ "username : " + emp.getUserName() + " \n Password : " + emp.getPassword());
+			simpleMailMessage.setSubject("Registration successful.This Email was sent from java");
+			mailSender.send(simpleMailMessage);
+			return emp;
+
+		} catch (Exception e) {
+			throw e;
+			
+		}
 	}
 
 	@Override
-	public Employee getEmployee(Long id) {
+	public Employee getEmployee(int id) {
 
 		try {
 			Optional<Employee> findById = employeeDao.findById(id);
@@ -63,7 +101,7 @@ public class EmployeeServicesImpl implements EmployeeServices {
 	}
 
 	@Override
-	public Employee deleteRecord(Long id) {
+	public Employee deleteRecord(int id) {
 
 		try {
 			Optional<Employee> findById = employeeDao.findById(id);
@@ -85,7 +123,7 @@ public class EmployeeServicesImpl implements EmployeeServices {
 	}
 
 	@Override
-	public Employee updateRecord(Long id, EmployeeDto dto) {
+	public Employee updateRecord(int id, EmployeeDto dto) {
 
 		try {
 			if (employeeDao.findById(id).isPresent()) {
@@ -104,5 +142,11 @@ public class EmployeeServicesImpl implements EmployeeServices {
 		} catch (Exception e) {
 			throw e;
 		}
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		Employee user = employeeDao.findByUserName(username);
+		return new User(user.getUserName(), user.getPassword(), new ArrayList<>());
 	}
 }

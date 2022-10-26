@@ -10,4 +10,7 @@ import com.technoelevate.employeemanagementsystem.entity.Employee;
 @Repository
 public interface EmployeeDao extends JpaRepository<Employee, Serializable> {
 
+	Employee findByUserName(String username);
+	Employee findByPassword(String password);
+
 }
