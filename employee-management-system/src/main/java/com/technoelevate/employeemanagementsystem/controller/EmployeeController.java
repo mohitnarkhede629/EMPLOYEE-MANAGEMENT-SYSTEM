@@ -20,13 +20,16 @@ import com.technoelevate.employeemanagementsystem.response.Response;
 import com.technoelevate.employeemanagementsystem.services.EmployeeServices;
 import com.technoelevate.employeemanagementsystem.wrapper.LoginWrapper;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 @RestController
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmployeeController {
 
 	@Autowired
 	private EmployeeServices employeeServices;
-
-
 
 	@PostMapping("/login")
 	public ResponseEntity<Response> login(@RequestBody LoginWrapper login) {
@@ -38,15 +41,13 @@ public class EmployeeController {
 	public ResponseEntity<Response> addEnployee(@RequestBody EmployeeDto employeeDto) {
 		// employeeDto.setPassword(this.passwordEncoder.encode(employeeDto.getPassword()));
 		Employee addEmployee = employeeServices.addEmployee(employeeDto);
-		
-		return new ResponseEntity<>(new Response(false, "Data Saved Successfully ", addEmployee),
-				HttpStatus.OK);
+
+		return new ResponseEntity<>(new Response(false, "Data Saved Successfully ", addEmployee), HttpStatus.OK);
 
 	}
 
 	@GetMapping(path = "/getemployee")
 	public ResponseEntity<Response> getEmployee(@RequestParam int id) {
-		// List<Employee> allEmp = employeeServices.getAllEmp();
 		Employee employee = employeeServices.getEmployee(id);
 		return new ResponseEntity<>(new Response(false, "Data Displayed In Response", employee), HttpStatus.OK);
 
@@ -62,7 +63,7 @@ public class EmployeeController {
 
 	@DeleteMapping(path = "/deleterecord")
 	public ResponseEntity<Response> deleteRecord(@RequestParam int id) {
-		Employee deleteRecord = employeeServices.deleteRecord(id);
+		String deleteRecord = employeeServices.deleteRecord(id);
 		return new ResponseEntity<>(new Response(false, "Data Deleted Successfully", deleteRecord), HttpStatus.OK);
 	}
 

@@ -23,20 +23,18 @@ public class EmployeeServicesImpl implements EmployeeServices {
 	@Autowired
 	private EmployeeDao employeeDao;
 
-
-
 	@Override
 	public Employee addEmployee(EmployeeDto employeeDto) {
-		
+
 		try {
 			Employee employee = new Employee();
 			BeanUtils.copyProperties(employeeDto, employee);
-			
+
 			return employeeDao.save(employee);
 
 		} catch (Exception e) {
 			throw e;
-			
+
 		}
 	}
 
@@ -61,13 +59,12 @@ public class EmployeeServicesImpl implements EmployeeServices {
 
 		try {
 			List<Employee> findAll = employeeDao.findAll();
-			if (findAll == null) {
+
+			if (findAll.isEmpty()) {
 				throw new EmployeeNotFoundException("No Data Is Present");
 			} else {
 				return findAll;
 			}
-		} catch (EmployeeNotFoundException e) {
-			throw e;
 		} catch (Exception e) {
 			throw e;
 		}
@@ -75,22 +72,17 @@ public class EmployeeServicesImpl implements EmployeeServices {
 	}
 
 	@Override
-	public Employee deleteRecord(int id) {
+	public String deleteRecord(int id) {
 
 		try {
 			Optional<Employee> findById = employeeDao.findById(id);
-			Employee delete = findById.get();
 			if (findById.isPresent()) {
-				employeeDao.delete(delete);
-
-				return null;
-
+				employeeDao.deleteById(id);
+				return "Record Deleted Successfuly";
 			} else {
 				throw new EmployeeNotFoundException("Record with employee id " + id + " was not found");
 			}
-		} catch (EmployeeNotFoundException e) {
-			throw e;
-		} catch (Exception e) {
+		} catch (RuntimeException e) {
 			throw e;
 		}
 
@@ -111,12 +103,9 @@ public class EmployeeServicesImpl implements EmployeeServices {
 			} else {
 				throw new EmployeeNotFoundException("Record With Employee Id " + id + " Was Not Found");
 			}
-		} catch (EmployeeNotFoundException e) {
-			throw e;
-		} catch (Exception e) {
+		} catch (RuntimeException   e) {
 			throw e;
 		}
 	}
 
-	
 }

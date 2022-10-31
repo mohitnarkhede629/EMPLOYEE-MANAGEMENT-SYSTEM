@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import com.technoelevate.employeemanagementsystem.customexceptions.EmployeeNotFoundException;
 import com.technoelevate.employeemanagementsystem.dao.EmployeeDao;
@@ -23,7 +22,6 @@ import com.technoelevate.employeemanagementsystem.dto.EmployeeDto;
 import com.technoelevate.employeemanagementsystem.entity.Employee;
 import com.technoelevate.employeemanagementsystem.services.EmployeeServicesImpl;
 
-@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class EmployeeServiceTest {
 
@@ -39,13 +37,17 @@ class EmployeeServiceTest {
 	}
 
 	@Test
-	void canGetAllEmployee() {
+	void doesGetAllEmployeeWorksFine() {
 
-		serviceTest.getAllEmp();
-		verify(dao).findAll();
-		when(serviceTest.getAllEmp())
-				.thenReturn(Stream.of(Employee.builder().firstName("adbkSJKSBD").build()).toList());
+		when(dao.findAll()).thenReturn(Stream.of(Employee.builder().firstName("adbkSJKSBD").build()).toList());
 		assertThat(serviceTest.getAllEmp()).hasSize(1);
+	}
+
+	@Test
+	void does_GetAllEmp_ThrowsException_IfNoRecordIsPresent() {
+
+		EmployeeNotFoundException e = assertThrows(EmployeeNotFoundException.class, () -> serviceTest.getAllEmp());
+		assertThat(e.getMessage()).isEqualTo("No Data Is Present");
 
 	}
 
@@ -60,13 +62,10 @@ class EmployeeServiceTest {
 		assertThat(addEmployee).isEqualTo(employee);
 
 	}
-	
-	@Test 
-	void doesAddEmployeeHandlesException(){
-		
-		Exception e= assertThrows(Exception.class, ()-> serviceTest.addEmployee(Mockito.any()));
-		when(dao.save(Mockito.any())).thenThrow(new Exception("Sometihing Went Wrong"));
-		
+
+	@Test
+	void doesAddEmployeeThrowsException() {
+		assertThrows(Exception.class, () -> serviceTest.addEmployee(null));
 	}
 
 	@Test
@@ -80,15 +79,51 @@ class EmployeeServiceTest {
 	}
 
 	@Test
-	void CheckIfIdIsNotPresentThenExceptionIsHandled() {
+	void CheckIfIdIsNotPresentThenExceptionIsThrown() {
 
-		Employee employee = Employee.builder().firstName("Mohit").userName("Mohit123").lastName("Narkhede")
-				.employeeId(10).build();
-		dao.save(employee);
 		int id = 9;
 		EmployeeNotFoundException e = assertThrows(EmployeeNotFoundException.class, () -> serviceTest.getEmployee(9));
-		String expectedMessege = "No Record With Emp Id " + id + " Was Found";
-		assertThat(e.getMessage()).isEqualTo(expectedMessege);
+		assertThat(e.getMessage()).isEqualTo("No Record With Emp Id " + id + " Was Found");
+
+	}
+
+	@Test
+	void checkIfDeleteRecordIsWorkingFine() {
+		Employee employee = Employee.builder().firstName("Mohit").userName("Mohit123").lastName("Narkhede")
+				.employeeId(10).build();
+		when(dao.findById(employee.getEmployeeId())).thenReturn(Optional.of(employee));
+		serviceTest.deleteRecord(employee.getEmployeeId());
+		verify(dao).deleteById(employee.getEmployeeId());
+
+	}
+
+	@Test
+	void checkIf_ExceptionIsHandled_ForDeleteByIdApi() {
+		int id = 9;
+		EmployeeNotFoundException e = assertThrows(EmployeeNotFoundException.class, () -> serviceTest.deleteRecord(id));
+		assertThat(e.getMessage()).isEqualTo("Record with employee id " + id + " was not found");
+
+	}
+
+	@Test
+	void checkIf_UpdateRecord_WorksFine() {
+		Employee employee = Employee.builder().firstName("Mohit").userName("Mohit123").lastName("Narkhede")
+				.employeeId(10).build();
+		EmployeeDto employeeDto = EmployeeDto.builder().firstName("Mohit").userName("Mohit123").lastName("Narkhede")
+				.build();
+		when(dao.findById(employee.getEmployeeId())).thenReturn(Optional.of(employee));
+		Employee updateRecord = serviceTest.updateRecord(10, employeeDto);
+		assertThat(updateRecord).isEqualTo(employee);
+
+	}
+
+	@Test
+	void checkIf_UpdateRecord_handlesException() {
+		EmployeeDto employeeDto = EmployeeDto.builder().firstName("Mohit").userName("Mohit123").lastName("Narkhede")
+				.build();
+		int id = 1;
+		RuntimeException e = assertThrows(RuntimeException.class, () -> serviceTest.updateRecord(id, employeeDto));
+		assertThat(e.getMessage()).isEqualTo("Record With Employee Id " + id + " Was Not Found");
 
 	}
 

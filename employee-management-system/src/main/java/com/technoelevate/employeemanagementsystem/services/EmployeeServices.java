@@ -13,7 +13,7 @@ public interface EmployeeServices {
 	
 	List<Employee> getAllEmp();
 
-	Employee deleteRecord(int id);
+	String deleteRecord(int id);
 
 	Employee updateRecord(int id,EmployeeDto dto);
 	
